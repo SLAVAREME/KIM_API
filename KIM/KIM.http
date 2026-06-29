@@ -1,0 +1,6 @@
+@KIM_HostAddress = http://localhost:5222
+
+GET {{KIM_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

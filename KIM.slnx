@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="KIM.BL.Tests/KIM.BL.Tests.csproj" />
+  <Project Path="KIM.BL/KIM.BL.csproj" />
+  <Project Path="KIM.DAL/KIM.DAL.csproj" />
+  <Project Path="KIM/KIM.Api.csproj" />
+</Solution>
