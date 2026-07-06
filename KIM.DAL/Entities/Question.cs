@@ -23,4 +23,6 @@ public class Question : BasicModel
     public int RatingVotesCount { get; set; }
 
     public ICollection<QuestionPackage> QuestionPackages { get; set; } = new List<QuestionPackage>();
+
+    public ICollection<QuestionUserRating> UserRatings { get; set; } = new List<QuestionUserRating>();
 }

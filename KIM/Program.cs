@@ -1,9 +1,14 @@
 using KIM.Api.Middlewares;
 using KIM.BL.Extensions;
+using KIM.BL.Settings;
 using KIM.BL.Shared.Responses;
 using KIM.DAL.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,14 +34,58 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddKimDal(builder.Configuration);
+
+var jwtSettingsSection = builder.Configuration.GetSection(JwtSettings.SectionName);
+builder.Services.Configure<JwtSettings>(jwtSettingsSection);
 builder.Services.AddKimBl();
+
 builder.Services.AddEndpointsApiExplorer();
+
+var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+        };
+    });
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "KIM API",
         Version = "v1"
+    });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token",
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -74,6 +123,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("FrontendDev");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
