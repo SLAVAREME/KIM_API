@@ -10,6 +10,5 @@ public class RateQuestionCommand : IRequest<ApiResponse<QuestionDto>>
 
     public double Value { get; set; }
 
-    // Set by the controller from JWT claims — not bound from request body
     public Guid UserId { get; set; }
 }

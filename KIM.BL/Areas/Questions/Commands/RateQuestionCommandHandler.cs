@@ -23,7 +23,6 @@ public class RateQuestionCommandHandler(KimDbContext dbContext, IMapper mapper)
 
         if (existing != null)
         {
-            // Update: recalculate aggregate without changing vote count
             entity.Rating = (entity.Rating * entity.RatingVotesCount - existing.Value + request.Value)
                             / entity.RatingVotesCount;
             existing.Value = request.Value;
